@@ -13,14 +13,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -52,17 +52,28 @@ jobs:
         run: |
           export VERSION_NAME="$(node -p 'require("../package.json").version').${{ github.run_number }}"
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon 2>&1 | tee ../gradle.log
+          test "${PIPESTATUS[0]}" -eq 0
           mkdir -p ../out
           cp app/build/outputs/apk/release/app-release.apk "../out/muraja-$VERSION_NAME.apk"
           echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+
+      # عند الفشل: سبب الخطأ يظهر في ملخص البناء (Annotations) ليسهل قراءته
+      - name: عرض سبب الفشل
+        if: failure()
+        run: |
+          [ -f gradle.log ] || exit 0
+          MSG=$(grep -A 25 "What went wrong" gradle.log | head -40 || true)
+          [ -n "$MSG" ] || MSG=$(grep -iE "error|exception" gradle.log | head -30)
+          MSG="${MSG//'%'/'%25'}"; MSG="${MSG//$'\n'/'%0A'}"; MSG="${MSG//$'\r'/}"
+          echo "::error title=Gradle::$MSG"
 
       - name: التحقق من التوقيع
         run: |
           APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
           $APKSIGNER verify --print-certs out/*.apk | head -5
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: muraja-${{ env.VERSION_NAME }}
           path: out/*.apk
