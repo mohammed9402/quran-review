@@ -33,6 +33,5 @@ React + Vite، وCapacitor لبناء تطبيق أندرويد. البناء ي
 ## مصادر البيانات
 
 - أسماء السور ونطقها اللاتيني من حزمة [quran-json](https://github.com/risan/quran-json) (CC BY 4.0).
-
 - نص روايتَي حفص (الإصدار 18) وورش (الإصدار 10) وخطاهما وحدود صفحاتهما من [مجمع الملك فهد لطباعة المصحف الشريف](https://qurancomplex.gov.sa/techquran/dev/).
 - خط [Amiri Quran](https://github.com/aliftype/amiri) (OFL).
