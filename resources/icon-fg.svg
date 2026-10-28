@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- نجمة الحزب ۞ مع مصحف مفتوح، داخل منطقة الأمان للأيقونة المتكيفة (66 من 108) -->
+  <g transform="translate(54 54)">
+    <rect x="-24" y="-24" width="48" height="48" rx="3" fill="none" stroke="#e7c873" stroke-width="3"/>
+    <rect x="-24" y="-24" width="48" height="48" rx="3" fill="none" stroke="#e7c873" stroke-width="3" transform="rotate(45)"/>
+    <circle r="19" fill="#0f5c4d"/>
+    <path d="M-14 -6 Q-7 -10 0 -6 Q7 -10 14 -6 L14 11 Q7 7 0 11 Q-7 7 -14 11 Z" fill="#fdf9ee"/>
+    <path d="M0 -6 L0 11" stroke="#b08a3e" stroke-width="1.4"/>
+    <path d="M-11 -1 Q-6 -3.5 -3 -1.5 M-11 3 Q-6 0.5 -3 2.5 M3 -1.5 Q6 -3.5 11 -1 M3 2.5 Q6 0.5 11 3" stroke="#0f5c4d" stroke-width="1" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

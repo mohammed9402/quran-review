@@ -1,0 +1,14 @@
+{
+  "appId": "com.rafeeq.muraja",
+  "appName": "رفيق المراجعة",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#0f5c4d"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notify",
+      "iconColor": "#0f5c4d"
+    }
+  }
+}
