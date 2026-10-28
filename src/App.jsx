@@ -3,6 +3,8 @@ import { App as CapApp } from "@capacitor/app";
 import { useStore, getState, setState, saveNow } from "./store.js";
 import { ensureToday } from "./schedule.js";
 import { today } from "./date.js";
+import { useI18n } from "./i18n.js";
+import { applySystemBars } from "./native.js";
 import Setup from "./screens/Setup.jsx";
 import Home from "./screens/Home.jsx";
 import Review from "./screens/Review.jsx";
@@ -10,24 +12,49 @@ import Mushaf from "./screens/Mushaf.jsx";
 import Mistakes from "./screens/Mistakes.jsx";
 import Settings from "./screens/Settings.jsx";
 import Picker from "./screens/Picker.jsx";
+import Developer from "./screens/Developer.jsx";
 
 const TABS = [
-  { name: "home", label: "اليوم", icon: "☀" },
-  { name: "mushaf", label: "المصحف", icon: "📖" },
-  { name: "mistakes", label: "الأخطاء", icon: "✎" },
-  { name: "settings", label: "المزيد", icon: "⚙" },
+  { name: "home", label: "tab_today", icon: "☀" },
+  { name: "mushaf", label: "tab_mushaf", icon: "📖" },
+  { name: "mistakes", label: "tab_mistakes", icon: "✎" },
+  { name: "settings", label: "tab_more", icon: "⚙" },
 ];
+
+// المظهر الفعلي: "auto" يتبع إعداد الهاتف
+function useResolvedTheme(theme) {
+  const query = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : null;
+  const [systemDark, setSystemDark] = useState(query?.matches ?? false);
+  useEffect(() => {
+    if (!query) return;
+    const on = (e) => setSystemDark(e.matches);
+    query.addEventListener("change", on);
+    return () => query.removeEventListener("change", on);
+  }, []);
+  return theme === "auto" ? (systemDark ? "dark" : "light") : theme;
+}
 
 export default function App() {
   const state = useStore();
+  const { t, dir, lang } = useI18n();
+  const theme = useResolvedTheme(state.settings.theme);
   const [stack, setStack] = useState([{ name: "home" }]);
   const stackRef = useRef(stack);
   stackRef.current = stack;
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.dir = dir;
+    root.lang = lang;
+    applySystemBars(theme);
+  }, [theme, dir, lang]);
+
   // ورد اليوم يُجدَّد عند فتح التطبيق وعند الرجوع إليه في يوم جديد
   useEffect(() => {
     const refresh = () => {
-      if (getState().setupDone) setState((s) => ensureToday(s, today()));
+      const s = getState();
+      if (s.setupDone && s.memorized.length) setState((x) => ensureToday(x, today()));
     };
     refresh();
     const sub = CapApp.addListener("appStateChange", ({ isActive }) => (isActive ? refresh() : saveNow()));
@@ -51,7 +78,6 @@ export default function App() {
 
   const nav = {
     push: (route) => setStack((s) => [...s, route]),
-    replace: (route) => setStack((s) => [...s.slice(0, -1), route]),
     back: () => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)),
     tab: (name) => setStack([{ name }]),
   };
@@ -64,14 +90,14 @@ export default function App() {
   return (
     <div className="app">
       <main className={showTabs ? "with-tabs" : ""}>
-        <Screen route={route} nav={nav} key={stack.length + route.name} />
+        <Screen route={route} nav={nav} key={stack.length + route.name + state.riwaya} />
       </main>
       {showTabs && (
         <nav className="tabs">
-          {TABS.map((t) => (
-            <button key={t.name} className={route.name === t.name ? "active" : ""} onClick={() => nav.tab(t.name)}>
-              <span className="tab-icon">{t.icon}</span>
-              <span>{t.label}</span>
+          {TABS.map((tab) => (
+            <button key={tab.name} className={route.name === tab.name ? "active" : ""} onClick={() => nav.tab(tab.name)}>
+              <span className="tab-icon">{tab.icon}</span>
+              <span>{t(tab.label)}</span>
             </button>
           ))}
         </nav>
@@ -94,6 +120,8 @@ function Screen({ route, nav }) {
       return <Settings nav={nav} />;
     case "picker":
       return <Picker nav={nav} />;
+    case "developer":
+      return <Developer nav={nav} />;
     default:
       return null;
   }

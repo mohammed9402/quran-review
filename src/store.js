@@ -4,15 +4,17 @@ import { Preferences } from "@capacitor/preferences";
 
 const KEY = "muraja-state-v1";
 
+// بيانات المراجعة الخاصة بكل رواية؛ بيانات الرواية الحالية في أعلى الحالة، والباقي محفوظ في profiles
+export const PROFILE_KEYS = ["memorized", "cards", "today", "cycle", "mistakes", "history"];
+export const emptyProfile = () => ({ memorized: [], cards: {}, today: null, cycle: null, mistakes: {}, history: {} });
+
 export const initialState = {
-  version: 1,
+  version: 2,
   setupDone: false,
-  settings: { dailyPages: 5, fontSize: 26, reminder: { enabled: false, hour: 5, minute: 30 } },
-  memorized: [],
-  cards: {},
-  today: null,
-  mistakes: {},
-  history: {},
+  riwaya: "hafs",
+  profiles: {},
+  settings: { lang: "ar", theme: "light", dailyPages: 5, fontSize: 26, testMode: true, reminder: { enabled: false, hour: 5, minute: 30 } },
+  ...emptyProfile(),
 };
 
 let state = initialState;
@@ -33,8 +35,20 @@ export function normalize(data) {
   return {
     ...initialState,
     ...data,
+    version: initialState.version,
+    profiles: data.profiles || {},
     settings: { ...initialState.settings, ...data.settings, reminder: { ...initialState.settings.reminder, ...data.settings?.reminder } },
   };
+}
+
+// التبديل بين الروايات: تُحفظ بيانات الرواية الحالية وتُحمَّل بيانات الأخرى.
+// إذا كانت الرواية الجديدة بلا محفوظ نسخنا قائمة المحفوظ (الصفحات متطابقة في المصحفين) ببطاقات جديدة.
+export function switchRiwaya(s, id) {
+  if (s.riwaya === id) return s;
+  const current = Object.fromEntries(PROFILE_KEYS.map((k) => [k, s[k]]));
+  const saved = s.profiles[id];
+  const next = saved?.memorized?.length ? saved : { ...emptyProfile(), memorized: [...s.memorized] };
+  return { ...s, ...next, riwaya: id, profiles: { ...s.profiles, [s.riwaya]: current, [id]: undefined } };
 }
 
 export function getState() {

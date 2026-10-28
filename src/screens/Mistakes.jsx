@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useStore, setState } from "../store.js";
-import { loadPages, surahs, ar } from "../quran.js";
+import { loadPages, surahs, riwaya } from "../quran.js";
+import { useI18n } from "../i18n.js";
 
 export default function Mistakes({ nav }) {
   const state = useStore();
+  const { t } = useI18n();
   const [data, setData] = useState(null);
   useEffect(() => {
     loadPages().then(setData);
@@ -11,12 +13,12 @@ export default function Mistakes({ nav }) {
 
   const items = Object.entries(state.mistakes)
     .map(([key, m]) => {
-      const [s, n] = key.split(":").map(Number);
-      return { key, s, n, ...m };
+      const [s, num] = key.split(":").map(Number);
+      return { key, s, num, ...m };
     })
     .sort((a, b) => b.count - a.count || a.page - b.page);
 
-  const textOf = (it) => data?.[it.page - 1].find((a) => a[0] === it.s && a[1] === it.n)?.[2];
+  const textOf = (it) => data?.[it.page - 1].find((a) => a[0] === it.s && a[1] === it.num)?.[2];
   const pages = [...new Set(items.map((i) => i.page))].sort((a, b) => a - b);
 
   const remove = (key) =>
@@ -29,18 +31,18 @@ export default function Mistakes({ nav }) {
   return (
     <div className="screen">
       <header className="bar">
-        <h2>مواضع الأخطاء</h2>
+        <h2>{t("mistakes_title")}</h2>
         {pages.length > 0 && (
           <button className="primary small" onClick={() => nav.push({ name: "review", mode: "browse", pages, index: 0 })}>
-            راجعها
+            {t("review_them")}
           </button>
         )}
       </header>
       <div className="content">
         {!items.length ? (
           <div className="empty">
-            <p>لا توجد أخطاء مسجّلة بعد.</p>
-            <p className="muted">أثناء المراجعة اضغط زر «✎ خطأ» ثم اضغط على الآية التي أخطأت فيها، لتجدها هنا وتركّز عليها.</p>
+            <p>{t("no_mistakes")}</p>
+            <p className="muted">{t("no_mistakes_hint")}</p>
           </div>
         ) : (
           <ul className="mistakes">
@@ -48,17 +50,17 @@ export default function Mistakes({ nav }) {
               <li key={it.key}>
                 <div className="mistake-head">
                   <b>
-                    {surahs[it.s - 1].name} · الآية {ar(it.n)}
+                    <span className="ar-name">{surahs()[it.s - 1].name}</span> · {t("ayah_n", { n: it.num })}
                   </b>
-                  <span className="badge">{ar(it.count)} {it.count === 1 ? "مرة" : "مرات"}</span>
+                  <span className="badge">{t("times", { n: it.count })}</span>
                 </div>
-                <p className="quran-text">{textOf(it) || "…"}</p>
+                <p className={"quran-text riwaya-" + riwaya()} dir="rtl" lang="ar">{textOf(it) || "…"}</p>
                 <div className="mistake-actions">
                   <button className="link" onClick={() => nav.push({ name: "review", mode: "browse", pages: [it.page], index: 0 })}>
-                    افتح الصفحة {ar(it.page)}
+                    {t("open_page", { n: it.page })}
                   </button>
                   <button className="link danger" onClick={() => remove(it.key)}>
-                    أتقنتها، احذفها
+                    {t("mastered")}
                   </button>
                 </div>
               </li>

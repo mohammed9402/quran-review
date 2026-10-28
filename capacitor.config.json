@@ -3,7 +3,7 @@
   "appName": "رفيق المراجعة",
   "webDir": "dist",
   "android": {
-    "backgroundColor": "#0f5c4d"
+    "backgroundColor": "#f2ede1"
   },
   "plugins": {
     "LocalNotifications": {

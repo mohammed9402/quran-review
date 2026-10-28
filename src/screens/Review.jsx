@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { useStore, setState } from "../store.js";
 import { reviewPage, WEAK, GOOD, EXCELLENT } from "../schedule.js";
 import { today } from "../date.js";
-import { loadPages, pageTitle, juzOfPage, surahs, ar } from "../quran.js";
+import { loadPages, pageTitle, juzOfPage, surahs, basmala, basmalaBefore, riwaya } from "../quran.js";
+import { useI18n, makeI18n } from "../i18n.js";
 
-const BASMALA = "بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ";
 const HINT_WORDS = 2;
+const arNum = makeI18n("ar").n;
 
 // mode = "wird": مراجعة ورد اليوم، mode = "browse": تصفح المصحف
 export default function Review({ nav, mode, pages, index = 0 }) {
   const state = useStore();
+  const { t, n, arrows } = useI18n();
   const [data, setData] = useState(null);
   const [idx, setIdx] = useState(index);
   const [test, setTest] = useState(mode === "wird" && state.settings.testMode !== false);
@@ -38,10 +40,10 @@ export default function Review({ nav, mode, pages, index = 0 }) {
       if (idx < pages.length - 1) go(idx + 1);
       return;
     }
-    const t = state.today;
     // الانتقال لأول صفحة لم تُراجع بعد هذه الصفحة، ثم من البداية
+    const done = state.today.done;
     const order = [...pages.slice(idx + 1), ...pages.slice(0, idx)];
-    const next = order.find((p) => t.done[p] == null && p !== page);
+    const next = order.find((p) => done[p] == null && p !== page);
     if (next == null) nav.back();
     else go(pages.indexOf(next));
   };
@@ -53,55 +55,62 @@ export default function Review({ nav, mode, pages, index = 0 }) {
   };
 
   const ayahs = data ? data[page - 1] : [];
-  const nextHidden = ayahs.findIndex((a) => !revealed.has(a[0] + ":" + a[1]));
+  const keyOf = (a) => a[0] + ":" + a[1];
+  const nextHidden = ayahs.findIndex((a) => !revealed.has(keyOf(a)));
 
   const onAyah = (a) => {
-    const key = a[0] + ":" + a[1];
-    if (marking) {
-      setState((s) => toggleMistake(s, a, page, day));
-    } else if (test) {
+    if (marking) setState((s) => toggleMistake(s, a, page, day));
+    else if (test) {
       const next = new Set(revealed);
-      next.has(key) ? next.delete(key) : next.add(key);
+      next.has(keyOf(a)) ? next.delete(keyOf(a)) : next.add(keyOf(a));
       setRevealed(next);
     }
   };
 
+  const RATINGS = [
+    [WEAK, "weak"],
+    [GOOD, "good"],
+    [EXCELLENT, "excellent"],
+  ];
+
   return (
     <div className="screen review">
       <header className="bar">
-        <button className="icon" onClick={nav.back}>→</button>
+        <button className="icon" onClick={nav.back}>{arrows.back}</button>
         <div className="bar-title">
-          <h2>{pageTitle(page)}</h2>
+          <h2 className="ar-name">{pageTitle(page)}</h2>
           <span className="muted">
-            صفحة {ar(page)} · الجزء {ar(juzOfPage(page))}
-            {mode === "wird" && ` · ${ar(idx + 1)}/${ar(pages.length)}`}
+            {t("page_n", { n: page })} · {t("juz_n", { n: juzOfPage(page) })}
+            {mode === "wird" && ` · ${n(idx + 1)}/${n(pages.length)}`}
           </span>
         </div>
         <div className="bar-tools">
           <button className={"tool " + (test ? "on" : "")} onClick={toggleTest}>
-            {test ? "تسميع" : "قراءة"}
+            {test ? t("test_mode") : t("read_mode")}
           </button>
           <button className={"tool " + (marking ? "on warn" : "")} onClick={() => setMarking(!marking)}>
-            ✎ خطأ
+            {t("mark_mistake")}
           </button>
         </div>
       </header>
 
-      {marking && <div className="banner">اضغط على الآية التي أخطأت فيها لتسجيلها، واضغط مرة أخرى للإلغاء</div>}
+      {marking && <div className="banner">{t("mark_banner")}</div>}
 
-      <div className="mushaf-page" style={{ fontSize: state.settings.fontSize }}>
-        {!data && <p className="muted center">جارٍ التحميل…</p>}
+      <div className={"mushaf-page riwaya-" + riwaya()} dir="rtl" lang="ar" style={{ fontSize: state.settings.fontSize }}>
+        {!data && <p className="muted center">{t("loading")}</p>}
         {ayahs.map((a) => {
-          const [s, n, text] = a;
-          const key = s + ":" + n;
+          const [s, num, text] = a;
+          const key = keyOf(a);
           const hidden = test && !revealed.has(key);
-          const mistake = state.mistakes[key];
           return (
             <span key={key}>
-              {n === 1 && <SurahHeader n={s} />}
-              <span className={"ayah" + (mistake ? " mistake" : "") + (hidden ? " hidden" : "")} onClick={() => onAyah(a)}>
+              {num === 1 && <SurahHeader n={s} />}
+              <span
+                className={"ayah" + (state.mistakes[key] ? " mistake" : "") + (hidden ? " hidden" : "")}
+                onClick={() => onAyah(a)}
+              >
                 {hidden ? <Hidden text={text} /> : text}
-                <span className="ayah-num"> ﴿{ar(n)}﴾ </span>
+                <span className="ayah-num"> ﴿{arNum(num)}﴾ </span>
               </span>
             </span>
           );
@@ -110,11 +119,11 @@ export default function Review({ nav, mode, pages, index = 0 }) {
 
       {test && data && nextHidden >= 0 && (
         <div className="reveal-row">
-          <button className="ghost" onClick={() => setRevealed(new Set([...revealed, ayahs[nextHidden][0] + ":" + ayahs[nextHidden][1]]))}>
-            أظهر الآية التالية
+          <button className="ghost" onClick={() => setRevealed(new Set([...revealed, keyOf(ayahs[nextHidden])]))}>
+            {t("reveal_next")}
           </button>
-          <button className="link" onClick={() => setRevealed(new Set(ayahs.map((a) => a[0] + ":" + a[1])))}>
-            أظهر الكل
+          <button className="link" onClick={() => setRevealed(new Set(ayahs.map(keyOf)))}>
+            {t("reveal_all")}
           </button>
         </div>
       )}
@@ -122,30 +131,25 @@ export default function Review({ nav, mode, pages, index = 0 }) {
       <footer className="review-footer">
         {memorized ? (
           <>
-            <p className="muted center">
-              {doneRating ? "راجعتها اليوم — يمكنك تغيير التقييم" : "كيف كانت مراجعتك لهذه الصفحة؟"}
-            </p>
+            <p className="muted center">{doneRating ? t("reviewed_today") : t("how_was")}</p>
             <div className="ratings">
-              <button className={"rate weak" + (doneRating === WEAK ? " chosen" : "")} onClick={() => rate(WEAK)}>
-                ضعيفة<small>تُعاد غدًا</small>
-              </button>
-              <button className={"rate good" + (doneRating === GOOD ? " chosen" : "")} onClick={() => rate(GOOD)}>
-                جيدة<small>مع الختمة</small>
-              </button>
-              <button className={"rate excellent" + (doneRating === EXCELLENT ? " chosen" : "")} onClick={() => rate(EXCELLENT)}>
-                متقنة<small>مع الختمة</small>
-              </button>
+              {RATINGS.map(([value, name]) => (
+                <button key={name} className={`rate ${name}` + (doneRating === value ? " chosen" : "")} onClick={() => rate(value)}>
+                  {t(name)}
+                  <small>{t(name + "_sub")}</small>
+                </button>
+              ))}
             </div>
           </>
         ) : (
-          <p className="muted center">هذه الصفحة ليست ضمن محفوظك</p>
+          <p className="muted center">{t("not_memorized")}</p>
         )}
         <div className="pager">
           <button className="ghost" disabled={idx <= 0} onClick={() => go(idx - 1)}>
-            → السابقة
+            {arrows.back} {t("prev_page")}
           </button>
           <button className="ghost" disabled={idx >= pages.length - 1} onClick={() => go(idx + 1)}>
-            التالية ←
+            {t("next_page")} {arrows.forward}
           </button>
         </div>
       </footer>
@@ -156,8 +160,8 @@ export default function Review({ nav, mode, pages, index = 0 }) {
 function SurahHeader({ n }) {
   return (
     <span className="surah-header">
-      <span className="surah-name">سورة {surahs[n - 1].name}</span>
-      {n !== 1 && n !== 9 && <span className="basmala">{BASMALA}</span>}
+      <span className="surah-name">سورة {surahs()[n - 1].name}</span>
+      {basmalaBefore(n) && <span className="basmala">{basmala()}</span>}
     </span>
   );
 }

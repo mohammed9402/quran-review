@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useStore } from "../store.js";
-import { surahs, juz, range, ar } from "../quran.js";
+import { surahs, juzStarts, range } from "../quran.js";
+import { useI18n } from "../i18n.js";
 
 const ALL_PAGES = range(1, 604);
 
 export default function Mushaf({ nav }) {
   const state = useStore();
+  const { t, n, lang } = useI18n();
   const [tab, setTab] = useState("surah");
   const [goto, setGoto] = useState("");
   const memorized = new Set(state.memorized);
@@ -14,7 +16,7 @@ export default function Mushaf({ nav }) {
   return (
     <div className="screen">
       <header className="bar">
-        <h2>المصحف</h2>
+        <h2>{t("mushaf")}</h2>
         <form
           className="goto"
           onSubmit={(e) => {
@@ -23,41 +25,42 @@ export default function Mushaf({ nav }) {
             if (p >= 1 && p <= 604) open(p);
           }}
         >
-          <input type="number" inputMode="numeric" min="1" max="604" placeholder="رقم الصفحة" value={goto} onChange={(e) => setGoto(e.target.value)} />
-          <button className="primary small">اذهب</button>
+          <input type="number" inputMode="numeric" min="1" max="604" placeholder={t("page_number")} value={goto} onChange={(e) => setGoto(e.target.value)} />
+          <button className="primary small">{t("go")}</button>
         </form>
       </header>
       <div className="content">
         <div className="segmented">
-          <button className={tab === "surah" ? "active" : ""} onClick={() => setTab("surah")}>السور</button>
-          <button className={tab === "juz" ? "active" : ""} onClick={() => setTab("juz")}>الأجزاء</button>
+          <button className={tab === "surah" ? "active" : ""} onClick={() => setTab("surah")}>{t("surahs")}</button>
+          <button className={tab === "juz" ? "active" : ""} onClick={() => setTab("juz")}>{t("juzs")}</button>
         </div>
         {tab === "surah" ? (
           <ul className="list">
-            {surahs.map((s) => (
+            {surahs().map((s) => (
               <li key={s.n} onClick={() => open(s.page)}>
-                <span className="num">{ar(s.n)}</span>
+                <span className="num">{n(s.n)}</span>
                 <span className="grow">
-                  <b>{s.name}</b>
+                  <b className="ar-name">{s.name}</b>
                   <small className="muted">
-                    {s.type === "meccan" ? "مكية" : "مدنية"} · {ar(s.ayahs)} آية
+                    {lang !== "ar" && <>{s.tr} · </>}
+                    {t(s.type === "meccan" ? "meccan" : "medinan")} · {t("ayahs_n", { n: s.ayahs })}
                   </small>
                 </span>
-                {memorized.has(s.page) && <span className="dot" title="محفوظة" />}
-                <span className="muted">ص {ar(s.page)}</span>
+                {memorized.has(s.page) && <span className="dot" />}
+                <span className="muted">{t("p_short", { n: s.page })}</span>
               </li>
             ))}
           </ul>
         ) : (
           <ul className="list">
-            {juz.map((p, i) => (
+            {juzStarts().map((p, i) => (
               <li key={i} onClick={() => open(p)}>
-                <span className="num">{ar(i + 1)}</span>
+                <span className="num">{n(i + 1)}</span>
                 <span className="grow">
-                  <b>الجزء {ar(i + 1)}</b>
+                  <b>{t("juz_n", { n: i + 1 })}</b>
                 </span>
                 {memorized.has(p) && <span className="dot" />}
-                <span className="muted">ص {ar(p)}</span>
+                <span className="muted">{t("p_short", { n: p })}</span>
               </li>
             ))}
           </ul>

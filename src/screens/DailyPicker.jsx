@@ -1,15 +1,16 @@
-import { ar, pagesLabel } from "../quran.js";
+import { useI18n } from "../i18n.js";
 
 const CHOICES = [1, 2, 3, 5, 10, 20, 40];
 
 export default function DailyPicker({ value, onChange, memorizedCount }) {
+  const { t, n, pages, days } = useI18n();
   const cycle = memorizedCount ? Math.ceil(memorizedCount / value) : 0;
   return (
     <div>
       <div className="chips">
-        {CHOICES.map((n) => (
-          <button key={n} className={"chip " + (value === n ? "active" : "")} onClick={() => onChange(n)}>
-            {ar(n)}
+        {CHOICES.map((c) => (
+          <button key={c} className={"chip " + (value === c ? "active" : "")} onClick={() => onChange(c)}>
+            {n(c)}
           </button>
         ))}
         <label className="chip custom">
@@ -18,18 +19,18 @@ export default function DailyPicker({ value, onChange, memorizedCount }) {
             min="1"
             max="604"
             inputMode="numeric"
-            placeholder="عدد آخر"
+            placeholder={t("other_number")}
             value={CHOICES.includes(value) ? "" : value}
             onChange={(e) => {
-              const n = Math.max(1, Math.min(604, parseInt(e.target.value) || 0));
-              if (e.target.value) onChange(n);
+              const v = Math.max(1, Math.min(604, parseInt(e.target.value) || 0));
+              if (e.target.value) onChange(v);
             }}
           />
         </label>
       </div>
       <p className="muted center">
-        {pagesLabel(value)} يوميًا
-        {cycle > 0 && <> · تمرّ على كل محفوظك مرة كل {ar(cycle)} {cycle <= 10 && cycle > 2 ? "أيام" : "يومًا"} تقريبًا</>}
+        {t("per_day", { pages: pages(value) })}
+        {cycle > 0 && <> · {t("cycle_every", { days: days(cycle) })}</>}
       </p>
     </div>
   );
