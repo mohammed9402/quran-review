@@ -3,6 +3,25 @@ import { addExtra, streak, toRanges, cycleProgress, WEAK, GOOD, EXCELLENT } from
 import { today } from "../date.js";
 import { pageTitle, juzOfPage, riwayaName } from "../quran.js";
 import { useI18n } from "../i18n.js";
+import { buildOf, currentVersion, dismissUpdate } from "../updates.js";
+
+// لافتة تظهر أعلى الشاشة الرئيسية عند صدور إصدار جديد
+function UpdateBanner() {
+  const state = useStore();
+  const { t } = useI18n();
+  const u = state.update;
+  if (!u || u.version === state.dismissedUpdate || buildOf(u.version) <= buildOf(currentVersion)) return null;
+  return (
+    <section className="card update-card">
+      <h3>{t("update_available", { v: u.version })}</h3>
+      <p className="muted small">{t("update_hint")}</p>
+      <div className="row">
+        <a className="primary small center" href={u.url} target="_blank" rel="noreferrer">{t("update_download")}</a>
+        <button className="ghost" onClick={dismissUpdate}>{t("later")}</button>
+      </div>
+    </section>
+  );
+}
 
 const RATING_CLASS = { [WEAK]: "weak", [GOOD]: "good", [EXCELLENT]: "excellent" };
 
@@ -16,6 +35,7 @@ export default function Home({ nav }) {
     return (
       <div className="screen">
         <div className="content empty">
+          <UpdateBanner />
           <p className="muted">{riwayaName(state.riwaya, lang)}</p>
           <p>{t("no_memorized")}</p>
           <button className="primary" onClick={() => nav.push({ name: "picker" })}>{t("choose_memorized")}</button>
@@ -59,6 +79,7 @@ export default function Home({ nav }) {
       </header>
 
       <div className="content">
+        <UpdateBanner />
         <section className="card">
           <h3>{t("wird_today")}</h3>
           {tday.carried.length > 0 && <p className="note">{t("carried", { pages: pagesLabel(tday.carried.length) })}</p>}

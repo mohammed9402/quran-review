@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useStore, setState } from "../store.js";
 import { reviewPage, WEAK, GOOD, EXCELLENT } from "../schedule.js";
 import { today } from "../date.js";
-import { loadPages, pageTitle, juzOfPage, surahs, basmala, basmalaBefore, riwaya } from "../quran.js";
+import { loadPages, pageTitle, juzOfPage, surahs, basmala, basmalaBefore, fontClass, quranFont } from "../quran.js";
 import { useI18n, makeI18n } from "../i18n.js";
 
 const HINT_WORDS = 2;
@@ -96,7 +96,7 @@ export default function Review({ nav, mode, pages, index = 0 }) {
 
       {marking && <div className="banner">{t("mark_banner")}</div>}
 
-      <div className={"mushaf-page riwaya-" + riwaya()} dir="rtl" lang="ar" style={{ fontSize: state.settings.fontSize }}>
+      <div className={"mushaf-page " + fontClass()} dir="rtl" lang="ar" style={{ fontSize: state.settings.fontSize }}>
         {!data && <p className="muted center">{t("loading")}</p>}
         {ayahs.map((a) => {
           const [s, num, text] = a;
@@ -110,7 +110,7 @@ export default function Review({ nav, mode, pages, index = 0 }) {
                 onClick={() => onAyah(a)}
               >
                 {hidden ? <Hidden text={text} /> : text}
-                <span className="ayah-num"> ﴿{arNum(num)}﴾ </span>
+                <AyahNumber n={num} />
               </span>
             </span>
           );
@@ -155,6 +155,12 @@ export default function Review({ nav, mode, pages, index = 0 }) {
       </footer>
     </div>
   );
+}
+
+// في خط المجمع تتحول الأرقام بعد المسافة غير المنكسرة إلى علامة آية مزخرفة كما في المصحف المطبوع
+function AyahNumber({ n }) {
+  if (quranFont() === "uthmani") return <span className="ayah-end">{"\u00a0" + arNum(n) + " "}</span>;
+  return <span className="ayah-num"> ﴿{arNum(n)}﴾ </span>;
 }
 
 function SurahHeader({ n }) {

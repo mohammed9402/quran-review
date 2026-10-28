@@ -13,6 +13,8 @@ import Mistakes from "./screens/Mistakes.jsx";
 import Settings from "./screens/Settings.jsx";
 import Picker from "./screens/Picker.jsx";
 import Developer from "./screens/Developer.jsx";
+import NewPlan from "./screens/NewPlan.jsx";
+import { checkForUpdate } from "./updates.js";
 
 const TABS = [
   { name: "home", label: "tab_today", icon: "☀" },
@@ -55,6 +57,7 @@ export default function App() {
     const refresh = () => {
       const s = getState();
       if (s.setupDone && s.memorized.length) setState((x) => ensureToday(x, today()));
+      checkForUpdate();
     };
     refresh();
     const sub = CapApp.addListener("appStateChange", ({ isActive }) => (isActive ? refresh() : saveNow()));
@@ -122,6 +125,8 @@ function Screen({ route, nav }) {
       return <Picker nav={nav} />;
     case "developer":
       return <Developer nav={nav} />;
+    case "newplan":
+      return <NewPlan nav={nav} />;
     default:
       return null;
   }

@@ -13,7 +13,19 @@ export const initialState = {
   setupDone: false,
   riwaya: "hafs",
   profiles: {},
-  settings: { lang: "ar", theme: "light", dailyPages: 5, fontSize: 26, testMode: true, reminder: { enabled: false, hour: 5, minute: 30 } },
+  settings: {
+    lang: "ar",
+    theme: "light",
+    quranFont: "uthmani",
+    checkUpdates: true,
+    dailyPages: 5,
+    fontSize: 26,
+    testMode: true,
+    reminder: { enabled: false, hour: 5, minute: 30 },
+  },
+  update: null,
+  updateCheckedAt: 0,
+  dismissedUpdate: null,
   ...emptyProfile(),
 };
 

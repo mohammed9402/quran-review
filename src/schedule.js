@@ -144,3 +144,18 @@ export function cycleProgress(state) {
   const i = state.memorized.findIndex((p) => p >= next);
   return i < 0 ? 0 : i;
 }
+
+// خطة مراجعة جديدة: محفوظ ومقدار ونقطة بداية جديدة، تبدأ ختمة جديدة من اليوم.
+// الإحصاءات والأخطاء وتقييمات الصفحات تبقى كما هي.
+export function startNewPlan(state, { memorized, dailyPages, startPage }, day) {
+  const mem = [...new Set(memorized)].sort((a, b) => a - b);
+  const next = mem.find((p) => p >= startPage) ?? mem[0];
+  const fresh = {
+    ...state,
+    memorized: mem,
+    settings: { ...state.settings, dailyPages },
+    cycle: { next, count: state.cycle?.count || 0 },
+    today: null,
+  };
+  return ensureToday(fresh, day);
+}

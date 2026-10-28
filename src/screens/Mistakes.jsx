@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore, setState } from "../store.js";
-import { loadPages, surahs, riwaya } from "../quran.js";
+import { loadPages, surahs, fontClass } from "../quran.js";
 import { useI18n } from "../i18n.js";
 
 export default function Mistakes({ nav }) {
@@ -54,7 +54,7 @@ export default function Mistakes({ nav }) {
                   </b>
                   <span className="badge">{t("times", { n: it.count })}</span>
                 </div>
-                <p className={"quran-text riwaya-" + riwaya()} dir="rtl" lang="ar">{textOf(it) || "…"}</p>
+                <p className={"quran-text " + fontClass()} dir="rtl" lang="ar">{textOf(it) || "…"}</p>
                 <div className="mistake-actions">
                   <button className="link" onClick={() => nav.push({ name: "review", mode: "browse", pages: [it.page], index: 0 })}>
                     {t("open_page", { n: it.page })}

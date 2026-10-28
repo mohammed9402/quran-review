@@ -51,7 +51,12 @@
   color-scheme: dark;
 }
 
-/* خط مجمع الملك فهد لرواية ورش (مضمَّن في التطبيق ليعمل دون إنترنت) */
+/* خطوط مجمع الملك فهد لطباعة المصحف الشريف (مضمَّنة في التطبيق لتعمل دون إنترنت) */
+@font-face {
+  font-family: "KFGQPC Hafs";
+  src: url("./fonts/hafs.18.woff2") format("woff2");
+  font-display: block;
+}
 @font-face {
   font-family: "KFGQPC Warsh";
   src: url("./fonts/warsh.10.woff2") format("woff2");
@@ -201,7 +206,10 @@ main.with-tabs { padding-bottom: 8px; }
 .review { background: var(--page); }
 .banner { background: var(--mistake); padding: 8px 16px; font-size: 0.85rem; text-align: center; }
 .mushaf-page, .quran-text, .ar-name { font-family: "Amiri Quran", serif; }
-.riwaya-warsh { font-family: "KFGQPC Warsh", "Amiri Quran", serif; }
+.qf-hafs { font-family: "KFGQPC Hafs", "Amiri Quran", serif; }
+.qf-warsh { font-family: "KFGQPC Warsh", "Amiri Quran", serif; }
+.qf-amiri { font-family: "Amiri Quran", serif; }
+.ayah-end { color: var(--gold); white-space: nowrap; }
 .ayah-num, .surah-name { font-family: "Amiri Quran", serif; }
 .mushaf-page {
   flex: 1; padding: 20px 18px 12px; line-height: 2.15; text-align: start;
@@ -274,3 +282,11 @@ main.with-tabs { padding-bottom: 8px; }
 .contacts li:last-child { border-bottom: none; }
 .contacts a { display: flex; align-items: center; gap: 12px; padding: 12px 4px; color: var(--text); text-decoration: none; }
 .contact-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; font-weight: 700; }
+.gap { margin-top: 10px; }
+a.primary, a.ghost { display: block; text-decoration: none; text-align: center; }
+.update-card { border-color: var(--primary); background: linear-gradient(var(--primary-soft), var(--surface) 70%); }
+.update-card h3 { color: var(--primary); margin-bottom: 4px; }
+.update-card .row { align-items: center; }
+.start-list { max-height: 50vh; overflow-y: auto; }
+.start-list li.chosen { background: var(--primary-soft); }
+.start-list li.chosen .num { background: var(--primary); color: var(--on-primary); }

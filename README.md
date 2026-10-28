@@ -32,7 +32,7 @@ React + Vite، وCapacitor لبناء تطبيق أندرويد. البناء ي
 
 ## مصادر البيانات
 
-- نص المصحف بالرسم العثماني (رواية حفص) من [موسوعة القرآن الكريم QuranEnc](https://quranenc.com) عبر حزمة [quran-json](https://github.com/risan/quran-json) (CC BY 4.0).
-- حدود الصفحات والأجزاء والأحزاب وفق مصحف المدينة من حزمة [quran-meta](https://github.com/quran-center/quran-meta) (MIT).
-- نص رواية ورش وخطها من [مجمع الملك فهد لطباعة المصحف الشريف](https://qurancomplex.gov.sa/techquran/dev/) (الإصدار 10).
+- أسماء السور ونطقها اللاتيني من حزمة [quran-json](https://github.com/risan/quran-json) (CC BY 4.0).
+
+- نص روايتَي حفص (الإصدار 18) وورش (الإصدار 10) وخطاهما وحدود صفحاتهما من [مجمع الملك فهد لطباعة المصحف الشريف](https://qurancomplex.gov.sa/techquran/dev/).
 - خط [Amiri Quran](https://github.com/aliftype/amiri) (OFL).

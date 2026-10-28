@@ -28,6 +28,10 @@ export function loadPages(r = riwaya()) {
   return cache[r];
 }
 
+// خط المصحف: "uthmani" خط مجمع الملك فهد الخاص بكل رواية، أو "amiri"
+export const quranFont = () => (getState().settings.quranFont === "amiri" ? "amiri" : "uthmani");
+export const fontClass = () => "qf-" + (quranFont() === "amiri" ? "amiri" : riwaya());
+
 export const surahs = () => meta().surahs;
 export const juzStarts = () => meta().juz;
 export const basmala = () => meta().basmala;

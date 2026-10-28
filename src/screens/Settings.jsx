@@ -3,7 +3,8 @@ import { useStore, setState, getState, initialState, normalize, saveNow, switchR
 import { cycleDays, rebuildToday, ensureToday } from "../schedule.js";
 import { today } from "../date.js";
 import { scheduleReminder, exportBackup } from "../native.js";
-import { riwayaName } from "../quran.js";
+import { checkForUpdate, currentVersion } from "../updates.js";
+import { riwayaName, fontClass } from "../quran.js";
 import { useI18n, makeI18n, LANGS } from "../i18n.js";
 import DailyPicker from "./DailyPicker.jsx";
 import RiwayaPicker from "./RiwayaPicker.jsx";
@@ -22,6 +23,13 @@ export default function Settings({ nav }) {
   const { t, n, pages, days, lang } = useI18n();
   const fileRef = useRef();
   const [msg, setMsg] = useState("");
+  const [updateMsg, setUpdateMsg] = useState("");
+
+  const checkNow = async () => {
+    setUpdateMsg(t("checking"));
+    const r = await checkForUpdate({ force: true });
+    setUpdateMsg(r === "error" ? t("update_error") : r ? t("update_available", { v: r.version }) : t("up_to_date"));
+  };
 
   const totalReviews = Object.values(state.history).reduce((a, b) => a + b, 0);
   const weak = state.memorized.filter((p) => state.cards[p]?.weakDue).length;
@@ -128,6 +136,7 @@ export default function Settings({ nav }) {
         <section className="card">
           <h3>{t("memorized")}</h3>
           <button className="ghost full" onClick={() => nav.push({ name: "picker" })}>{t("edit_memorized")}</button>
+          <button className="primary full gap" onClick={() => nav.push({ name: "newplan" })}>{t("new_plan_btn")}</button>
         </section>
 
         <section className="card">
@@ -136,10 +145,21 @@ export default function Settings({ nav }) {
         </section>
 
         <section className="card">
+          <h3>{t("quran_font")}</h3>
+          <div className="segmented">
+            {["uthmani", "amiri"].map((f) => (
+              <button key={f} className={settings.quranFont === f ? "active" : ""} onClick={() => setSetting({ quranFont: f })}>
+                {t("font_" + f)}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="card">
           <h3>{t("font_size")}</h3>
           <div className="stepper">
             <button className="ghost" onClick={() => setFont(-2)}>{t("smaller")}</button>
-            <span className={"quran-text riwaya-" + state.riwaya} dir="rtl" style={{ fontSize: settings.fontSize }}>
+            <span className={"quran-text " + fontClass()} dir="rtl" style={{ fontSize: settings.fontSize }}>
               {state.riwaya === "warsh" ? "اِ۬لْحَمْدُ لِلهِ" : "ٱلۡحَمۡدُ لِلَّهِ"}
             </span>
             <button className="ghost" onClick={() => setFont(2)}>{t("bigger")}</button>
@@ -177,6 +197,19 @@ export default function Settings({ nav }) {
           </div>
         </section>
 
+        <section className="card">
+          <h3>{t("updates")}</h3>
+          <label className="switch-row">
+            <span>{t("check_updates_auto")}</span>
+            <input type="checkbox" checked={settings.checkUpdates} onChange={(e) => setSetting({ checkUpdates: e.target.checked })} />
+          </label>
+          <button className="ghost full" onClick={checkNow}>{t("check_now")}</button>
+          {updateMsg && <p className="muted small center gap">{updateMsg}</p>}
+          {state.update && updateMsg === t("update_available", { v: state.update.version }) && (
+            <a className="primary full center gap" href={state.update.url} target="_blank" rel="noreferrer">{t("update_download")}</a>
+          )}
+        </section>
+
         <section className="card about">
           <h3>{t("about")}</h3>
           <p>
@@ -186,7 +219,7 @@ export default function Settings({ nav }) {
             <b>{t("about_sources")}:</b> {t("source_hafs")} {t("source_warsh")}
           </p>
           <p className="muted">{t("dua")}</p>
-          <p className="muted small">{t("version", { v: import.meta.env.VITE_APP_VERSION || "dev" })}</p>
+          <p className="muted small">{t("version", { v: currentVersion })}</p>
           <button className="ghost full" onClick={() => nav.push({ name: "developer" })}>{t("developer")}</button>
         </section>
 
